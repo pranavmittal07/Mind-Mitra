@@ -12,3 +12,4 @@ requests
 urllib3
 Werkzeug
 gunicorn
+dotenv

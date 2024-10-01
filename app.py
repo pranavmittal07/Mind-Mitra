@@ -1,7 +1,13 @@
 from flask import Flask, render_template, request, jsonify, session
 import requests
+import os
 from datetime import timedelta
 from config import Config
+from dotenv import load_dotenv 
+
+load_dotenv()
+print("SECRET_KEY:", os.getenv('SECRET_KEY'))
+print("GEMINI_API_KEY:", os.getenv('GEMINI_API_KEY'))
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -28,8 +34,12 @@ def chat():
 
     # Add an initial system message to guide the conversation
     if len(session['conversation_history']) == 0:
-        # This instruction acts as a guideline for the chatbot
-        initial_instruction = "You are a mental health and emotional support assistant. Provide guidance, support, and compassionate advice in all responses."
+        # More specific instruction to guide the bot
+        initial_instruction = """
+        You are a mental health and emotional support assistant. 
+        Respond with solutions and advice, not just questions. 
+        Provide compassionate, actionable advice on emotional support, stress management, and coping strategies.
+        """
         session['conversation_history'].append({"text": initial_instruction})
 
     # Append the user's message to the conversation history
@@ -44,6 +54,7 @@ def chat():
         ]
     }
 
+    # Send the request to the Gemini API
     response = requests.post(
         f'{GEMINI_API_URL}?key={API_KEY}',
         headers={'Content-Type': 'application/json'},
@@ -58,8 +69,13 @@ def chat():
                 reply = "Sorry, the conversation contains inappropriate language. Let's keep it respectful."
             else:
                 # Extract the bot's reply text
-                bot_reply = response_data['candidates'][0]['content']['parts'][0]['text']
+                bot_reply = response_data['candidates'][0]['content']['parts'][0]['text'].strip()
                 
+                # Check if the bot's response is repetitive or not providing a solution
+                if "what problem are you facing" in bot_reply.lower() or bot_reply.lower() in user_message.lower():
+                    # If the bot asks too many questions, guide it to give a solution
+                    bot_reply = "Based on what you've shared, it seems you're dealing with a challenge. Here's what I recommend you do:"
+
                 # Append the bot's reply to the conversation history
                 session['conversation_history'].append({"text": bot_reply})
                 reply = bot_reply

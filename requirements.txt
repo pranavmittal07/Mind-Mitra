@@ -11,4 +11,3 @@ MarkupSafe
 requests
 urllib3
 Werkzeug
-dotenv

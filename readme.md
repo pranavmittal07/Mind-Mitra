@@ -41,3 +41,4 @@ export SECRET_KEY="your-secret-key"
 ```bash
 flask run
 ```
+Deployed Link : https://mind-mitra-kikv6uptv-pranav-mittals-projects.vercel.app/
